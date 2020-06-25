@@ -17,6 +17,8 @@ app.get('/', (req, res) => {
 // ASSIGNMENT /////////////////////////////////////////////////
 
 // ASSIGNMENT 1 ///////////////////////////////////////////////
+// SUM
+
 app.get('/sum', (req, res) => {
 
   const a = req.query.a;
@@ -33,6 +35,59 @@ app.get('/sum', (req, res) => {
   const answer = `The sum of ${a} and ${b} is ${c}`
   res.send(answer)
 })
+
+
+// ASSIGNMENT 2 ///////////////////////////////////////////////
+// Caesar Cipher https://privacycanada.net/classical-encryption/caesar-cipher/
+
+// Hints:
+
+//// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCharCode
+
+//// ASCII (UTF-16) Table: https://asecuritysite.com/coding/asc2 (A:65 -- Z:90)
+
+// 4 Ways to Convert String to Character Array in JavaScript
+// https://www.samanthaming.com/tidbits/83-4-ways-to-convert-string-to-character-array/
+
+
+app.get('/cipher', (req, res) => {
+
+  const plaintext = req.query.text.toUpperCase();
+  const shift = parseInt(req.query.shift);
+
+  // const plaintext = process.argv[2].toUpperCase();
+  // const shift = parseInt(process.argv[3]);
+
+  // 1. convert plaintext to ascii array
+  const asciiArr = [];
+  for (var i = 0; i < plaintext.length; i ++) {
+    asciiArr.push(plaintext[i].charCodeAt(0));
+  }
+
+  // 2. 
+  const asciiArrShift = asciiArr.map(char => {
+    // conditional to reposition charCode if shift reaches end of alphabet on either side. It's ugly but it works
+    if (char + shift > 90) {
+      return (char + shift - 91) + 65
+    } else if (char + shift < 65) {
+      return (char + shift) + 26
+    } else {
+      return char + shift
+    } 
+  })
+
+  const ciphertext = String.fromCharCode(...asciiArrShift)
+
+  res.send([
+    `plaintext: ${plaintext}`, 
+    // shift, 
+    // asciiArr, 
+    // asciiArrShift, 
+    `ciphertext: ${ciphertext}`
+  ]);
+
+})
+
 
 // ^^ ASSIGNMENT //////////////////////////////////////////////
 
