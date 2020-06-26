@@ -62,7 +62,7 @@ app.get('/sum', (req, res) => {
 app.get('/cipher', (req, res) => {
 
   // 00. client request: query parameters / arguments
-  const plaintext = req.query.text.toUpperCase();
+  const plaintext = req.query.text;
   const shift = parseInt(req.query.shift);
 
   // args for debugging...
@@ -80,7 +80,7 @@ app.get('/cipher', (req, res) => {
   // 1. convert plaintext to ascii array
   const asciiArr = [];
   for (var i = 0; i < plaintext.length; i ++) {
-    asciiArr.push(plaintext[i].charCodeAt(0));
+    asciiArr.push((plaintext[i]).toUpperCase().charCodeAt(0));
   }
 
   // 2. perform shift of ascii charcodes
