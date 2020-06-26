@@ -16,8 +16,10 @@ app.get('/', (req, res) => {
 
 // ASSIGNMENT /////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////
 // ASSIGNMENT 1 ///////////////////////////////////////////////
-// SUM
+// SUM          ///////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
 app.get('/sum', (req, res) => {
 
@@ -36,27 +38,37 @@ app.get('/sum', (req, res) => {
   res.send(answer)
 })
 
-
+///////////////////////////////////////////////////////////////
 // ASSIGNMENT 2 ///////////////////////////////////////////////
-// Caesar Cipher https://privacycanada.net/classical-encryption/caesar-cipher/
+// CIPHER TEXT  ///////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
-// Hints:
+// GUIDES:
 
-//// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCharCode
+// Caesar Cipher: 
+// https://privacycanada.net/classical-encryption/caesar-cipher/
 
-//// ASCII (UTF-16) Table: https://asecuritysite.com/coding/asc2 (A:65 -- Z:90)
+// See MDN for: 
+// String.fromCharCode()
+// String.prototype.charCodeAt()
 
-// 4 Ways to Convert String to Character Array in JavaScript
+// ASCII (UTF-16) Table: 
+// https://asecuritysite.com/coding/asc2 (A:65 -- Z:90)
+
+// 4 Ways to Convert String to Character Array in JavaScript:
 // https://www.samanthaming.com/tidbits/83-4-ways-to-convert-string-to-character-array/
 
 
 app.get('/cipher', (req, res) => {
 
+  // 0. query parameters / arguments
   const plaintext = req.query.text.toUpperCase();
   const shift = parseInt(req.query.shift);
 
+  // args for debugging...
   // const plaintext = process.argv[2].toUpperCase();
   // const shift = parseInt(process.argv[3]);
+
 
   // 1. convert plaintext to ascii array
   const asciiArr = [];
@@ -64,29 +76,39 @@ app.get('/cipher', (req, res) => {
     asciiArr.push(plaintext[i].charCodeAt(0));
   }
 
-  // 2. 
+  // 2. perform shift of ascii charcodes
   const asciiArrShift = asciiArr.map(char => {
+    // if encounters a %20 [space]
+    if (char === 32) { 
+      return 32
+    } 
     // conditional to reposition charCode if shift reaches end of alphabet on either side. It's ugly but it works
     if (char + shift > 90) {
       return (char + shift - 91) + 65
-    } else if (char + shift < 65) {
-      return (char + shift) + 26
-    } else {
-      return char + shift
     } 
+    if (char + shift < 65) {
+      return (char + shift) + 26
+    } 
+    return char + shift
   })
 
+  // 3. convert (shifted) asciicode array back into string
   const ciphertext = String.fromCharCode(...asciiArrShift)
 
+  // 4. http response
+  // res.send(`plaintext: "${plaintext}" converted to ciphertext: "${ciphertext}".`);
+
   res.send([
-    `plaintext: ${plaintext}`, 
-    // shift, 
-    // asciiArr, 
-    // asciiArrShift, 
-    `ciphertext: ${ciphertext}`
+    plaintext, 
+    shift, 
+    asciiArr, 
+    asciiArrShift, 
+    ciphertext
   ]);
 
 })
+
+
 
 
 // ^^ ASSIGNMENT //////////////////////////////////////////////
