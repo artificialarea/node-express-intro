@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
 })
 
 
-// ASSIGNMENT /////////////////////////////////////////////////
+// ASSIGNMENTS ////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////
 // ASSIGNMENT 1 ///////////////////////////////////////////////
@@ -23,19 +23,19 @@ app.get('/', (req, res) => {
 
 app.get('/sum', (req, res) => {
 
-  const a = req.query.a;
-  const b = req.query.b;
-  const c = (parseInt(a) + parseInt(b)).toString();
-
+  const a = Number(req.query.a);
+  const b = Number(req.query.b);
+  
   if(!a) {
-    return res.status(400).send('Number a is undefined')
+    return res.status(400).send('Number a is undefined');
   }
   if(!b) {
-    return res.status(400).send('Number b is undefined')
+    return res.status(400).send('Number b is undefined');
   }
 
-  const answer = `The sum of ${a} and ${b} is ${c}`
-  res.send(answer)
+  const c = (a + b).toString();
+  const answer = `The sum of ${a} and ${b} is ${c}`;
+  res.send(answer);
 })
 
 ///////////////////////////////////////////////////////////////
@@ -63,27 +63,27 @@ app.get('/cipher', (req, res) => {
 
   // 00. client request: query parameters / arguments
   const plaintext = req.query.text;
-  const shift = parseInt(req.query.shift);
+  const shift = Number(req.query.shift);
 
   // args for debugging...
   // const plaintext = process.argv[2].toUpperCase();
   // const shift = parseInt(process.argv[3]);
 
-  // 00. validation
+  // 01. Validation: Existence, Type, Range.
   if(!plaintext) {
-    return res.status(400).send('Text is undefined')
+    return res.status(400).send('Text is undefined');
   }
   if(!shift) {
-    return res.status(400).send('Cipher Shift is undefined')
+    return res.status(400).send('Cipher Shift is undefined');
   }
 
-  // 1. convert plaintext to ascii array
+  // 02. convert plaintext to ascii array
   const asciiArr = [];
   for (var i = 0; i < plaintext.length; i ++) {
     asciiArr.push((plaintext[i]).toUpperCase().charCodeAt(0));
   }
 
-  // 2. perform shift of ascii charcodes
+  // 03. perform shift of ascii charcodes
   const asciiArrShift = asciiArr.map(char => {
     // if encounters a '%20' [space]
     if (char === 32) { 
@@ -99,10 +99,10 @@ app.get('/cipher', (req, res) => {
     return char + shift
   })
 
-  // 3. convert (shifted) asciicode array back into string
+  // 04. convert (shifted) asciicode array back into string
   const ciphertext = String.fromCharCode(...asciiArrShift)
 
-  // 4. http response
+  // 05. http response
   res.send(`plaintext: "${plaintext}" converted to ciphertext: "${ciphertext}".`);
 
   // res.send([
@@ -122,17 +122,70 @@ app.get('/cipher', (req, res) => {
 
 app.get('/lotto', (req, res) => {
 
-  const userNum = req.query.arr;
-  // const userNum = process.argv[2];
+  const numbers = req.query.arr;
+  // const numbers = Number(req.query.arr); 
+  // ^^^^ doesn't work, ergo
+  // convert array items in numbers
+  // from strings to numbers
+  const numbersAsNums = numbers.map(Number);
 
-  if (userNum.length < 6) {
-    return res.status(400).send('You need to submit 6 numbers')
+
+  // 01 VALIDATION
+  if (!numbers || numbers.length !== 6) {
+    return res.status(400).send('Sorry, but you need to submit six numbers to play lotto!');
   }
 
-  res.send(userNum)
+  function checkNum(num) {
+    return (num <= 20 && num != 0);
+  }
+  if (!numbers.every(checkNum)) {
+    return res.status(400).send('Sorry, but your numbers need to be between 1 and 20.');
+  }
+
+
+  // 02 GENERATE RANDOM SET OF LOTTO NUMBERS
+  function randomRange(myMin, myMax, num) {
+    const lotto = [];
+    for (let i = 1; i <= num; i++) {
+      lotto.push(Math.floor(Math.random() * (myMax - myMin + 1) + myMin));
+    }
+    return lotto;
+  }
+
+  const lotto = randomRange(1, 20, 6)
+
+
+  // 03 COMPARE USER NUMBERS WITH LOTTO NUMBERS 
+  // FOR NUMBER OF (NON-SEQUENTIAL) MATCHES
+
+  const matches = lotto.filter(value => {
+    return numbersAsNums.includes(value);
+  })
+
+  const response = (matches) => {
+    if (matches.length === 0) {
+      return `Sorry, you lose. No matched numbers.`;
+    }
+    if (matches.length < 4) {
+      return `Sorry, you lose. You only matched ${matches.length} numbers.`;
+    } else if (matches.length === 4) {
+      return "Congratulations, you matched 4 numbers and win a free ticket!"
+    } else if (matches.length === 5) {
+      return "Congratulations, you matched 5 numbers and win $100!"
+    } else {
+      return "Oh. My. Gawd. Unbelieveable! You matched all 6 numbers and win mega millions!"
+    }
+  }
+
+  res.send(`
+    ${response(matches)} 
+    \n Lotto: ${lotto}
+    \n You: ${numbers}
+  `);
+  // res.send([response(matches), matches, lotto, numbersAsNums, numbers])
 })
 
-// ^^ ASSIGNMENT //////////////////////////////////////////////
+// ^^ ASSIGNMENTS //////////////////////////////////////////////
 
 
 // setting up (express) server to listen to a specific port
