@@ -61,7 +61,7 @@ app.get('/sum', (req, res) => {
 
 app.get('/cipher', (req, res) => {
 
-  // 0. query parameters / arguments
+  // 00. client request: query parameters / arguments
   const plaintext = req.query.text.toUpperCase();
   const shift = parseInt(req.query.shift);
 
@@ -69,6 +69,13 @@ app.get('/cipher', (req, res) => {
   // const plaintext = process.argv[2].toUpperCase();
   // const shift = parseInt(process.argv[3]);
 
+  // 00. validation
+  if(!plaintext) {
+    return res.status(400).send('Text is undefined')
+  }
+  if(!shift) {
+    return res.status(400).send('Cipher Shift is undefined')
+  }
 
   // 1. convert plaintext to ascii array
   const asciiArr = [];
@@ -78,7 +85,7 @@ app.get('/cipher', (req, res) => {
 
   // 2. perform shift of ascii charcodes
   const asciiArrShift = asciiArr.map(char => {
-    // if encounters a %20 [space]
+    // if encounters a '%20' [space]
     if (char === 32) { 
       return 32
     } 
@@ -96,20 +103,29 @@ app.get('/cipher', (req, res) => {
   const ciphertext = String.fromCharCode(...asciiArrShift)
 
   // 4. http response
-  // res.send(`plaintext: "${plaintext}" converted to ciphertext: "${ciphertext}".`);
+  res.send(`plaintext: "${plaintext}" converted to ciphertext: "${ciphertext}".`);
 
-  res.send([
-    plaintext, 
-    shift, 
-    asciiArr, 
-    asciiArrShift, 
-    ciphertext
-  ]);
+  // res.send([
+  //   plaintext, 
+  //   shift, 
+  //   asciiArr, 
+  //   asciiArrShift, 
+  //   ciphertext
+  // ]);
 
 })
 
+///////////////////////////////////////////////////////////////
+// ASSIGNMENT 3 ///////////////////////////////////////////////
+// LOTTO  /////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
+app.get('/lotto', (req, res) => {
 
+  const userNum = req.query.arr;
+
+  app.res(userNum)
+})
 
 // ^^ ASSIGNMENT //////////////////////////////////////////////
 
