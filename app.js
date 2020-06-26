@@ -16,6 +16,10 @@ app.get('/', (req, res) => {
 
 // ASSIGNMENTS ////////////////////////////////////////////////
 
+// per thinkful solution/approach
+// src: https://github.com/Thinkful-Ed/express_drills/blob/master/app.js
+
+
 ///////////////////////////////////////////////////////////////
 // ASSIGNMENT 1 ///////////////////////////////////////////////
 // SUM          ///////////////////////////////////////////////
@@ -23,20 +27,33 @@ app.get('/', (req, res) => {
 
 app.get('/sum', (req, res) => {
 
-  const a = Number(req.query.a);
-  const b = Number(req.query.b);
+  const { a, b } = req.query;
   
+  // VALIDATE: EXISTENCE
   if(!a) {
-    return res.status(400).send('Number a is undefined');
+    return res.status(400).send('a is required');
   }
   if(!b) {
-    return res.status(400).send('Number b is undefined');
+    return res.status(400).send('b is required');
   }
 
-  const c = (a + b).toString();
+  // VALIDATE: TYPE
+  const numA = parseFloat(a);
+  const numB = parseFloat(b);
+
+  if(Number.isNaN(numA)) {
+    return res.status(400).send('a must be a number');
+  }
+  if(Number.isNaN(numB)) {
+    return res.status(400).send('b must be a number');
+  }
+
+  // validation passed so perform task
+  const c = numA + numB;
   const answer = `The sum of ${a} and ${b} is ${c}`;
-  res.send(answer);
-})
+
+  res.status(200).send(answer);
+});
 
 ///////////////////////////////////////////////////////////////
 // ASSIGNMENT 2 ///////////////////////////////////////////////
@@ -62,128 +79,155 @@ app.get('/sum', (req, res) => {
 app.get('/cipher', (req, res) => {
 
   // 00. client request: query parameters / arguments
-  const plaintext = req.query.text;
-  const shift = Number(req.query.shift);
+  const { text, shift } = req.query;
 
-  // args for debugging...
-  // const plaintext = process.argv[2].toUpperCase();
-  // const shift = parseInt(process.argv[3]);
-
-  // 01. Validation: Existence, Type, Range.
-  if(!plaintext) {
-    return res.status(400).send('Text is undefined');
+  // 01. VALIDATION: Existence, Type, (and Range?)
+  if(!text) {
+    return res.status(400).send('text is required');
   }
   if(!shift) {
-    return res.status(400).send('Cipher Shift is undefined');
+    return res.status(400).send('cipher shift is required');
+  }
+  
+  const numShift = parseFloat(Math.abs(shift));
+  if (Number.isNaN(numShift)) {
+    return res.status(400).send('cipher shift must be a number')
   }
 
-  // 02. convert plaintext to ascii array
-  const asciiArr = [];
-  for (var i = 0; i < plaintext.length; i ++) {
-    asciiArr.push((plaintext[i]).toUpperCase().charCodeAt(0));
-  }
+  // all valid, perform the task...
 
-  // 03. perform shift of ascii charcodes
-  const asciiArrShift = asciiArr.map(char => {
-    // if encounters a '%20' [space]
-    if (char === 32) { 
-      return 32
-    } 
-    // conditional to reposition charCode if shift reaches end of alphabet on either side. It's ugly but it works
-    if (char + shift > 90) {
-      return (char + shift - 91) + 65
-    } 
-    if (char + shift < 65) {
-      return (char + shift) + 26
-    } 
-    return char + shift
-  })
+  // Make the text uppercase for convenience.
+  // The question did not say what to do with punctuation marks and numbers so we will ignore them and only convert letters.
+  // Also just the 26 letters of the english alphabet.
+  // Also didn't specify if can shift DOWN the alphabet, so for convenience will disregard and convert any downward shift (negative) numbers to absolute numbers, so the decipher will always be shifting UP the alphabet.
+  // Create a loop over the characters, for each letter, convert using the shift
 
-  // 04. convert (shifted) asciicode array back into string
-  const ciphertext = String.fromCharCode(...asciiArrShift)
+  const base = 'A'.charCodeAt(0); // get char code: 65
 
-  // 05. http response
-  res.send(`plaintext: "${plaintext}" converted to ciphertext: "${ciphertext}".`);
+  // schweet method chaining!!
+  const cipher = text
+    .toUpperCase()
+    .split('') 
+    .map(char => {
+      const code = char.charCodeAt(0); // get char code
 
-  // res.send([
-  //   plaintext, 
-  //   shift, 
-  //   asciiArr, 
-  //   asciiArrShift, 
-  //   ciphertext
-  // ]);
+      // if it is not one of the 26 letters, ignore it
+      // A:65, ... , Z:90
+      if(code < base || code > (base + 25)) { 
+        return char;
+      }
 
-})
+      // otherwise convet it 
+      // to get the distance from A
+      let diff = code - base;
+      diff = diff + numShift;
+
+      // in case shift takes the value past char code for Z (90),
+      // cycle back to the beginning with per the modulo/modulus operator (ingenious, that!)
+      diff = diff % 26;
+
+      // convert back to a character
+      const shiftedChar = String.fromCharCode(base + diff);
+      return shiftedChar;
+    })
+    .join(''); // construct a String from the array
+
+  res
+    .status(200)
+    .send(cipher);
+});
 
 ///////////////////////////////////////////////////////////////
 // ASSIGNMENT 3 ///////////////////////////////////////////////
 // LOTTO  /////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
+// completely different approach to mine in 'pre-pair' branch
 
 app.get('/lotto', (req, res) => {
 
+  // const { numbers } = req.query; // note: doesn't specific query object by name 'req.query.arr' (?) presumably because that is the only type of query being done (?) ... all that said, doesn't even work?!?!
+  // ergo
   const numbers = req.query.arr;
-  // const numbers = Number(req.query.arr); 
-  // ^^^^ doesn't work, ergo
-  // convert array items in numbers
-  // from strings to numbers
-  const numbersAsNums = numbers.map(Number);
 
 
-  // 01 VALIDATION
-  if (!numbers || numbers.length !== 6) {
-    return res.status(400).send('Sorry, but you need to submit six numbers to play lotto!');
+  // VALIDATION: 
+  // 1. EXISTENCE: the numbers array must exist
+  // 2. TYPE: must be an array 
+  // 3. RANGE: must be 6 numbers
+  // 4. RANGE: numbers must be between 1 and 20
+
+  if(!numbers) {
+    return res
+      .status(400)
+      .send('Numbers are required');
   }
 
-  function checkNum(num) {
-    return (num <= 20 && num != 0);
-  }
-  if (!numbers.every(checkNum)) {
-    return res.status(400).send('Sorry, but your numbers need to be between 1 and 20.');
-  }
-
-
-  // 02 GENERATE RANDOM SET OF LOTTO NUMBERS
-  function randomRange(myMin, myMax, num) {
-    const lotto = [];
-    for (let i = 1; i <= num; i++) {
-      lotto.push(Math.floor(Math.random() * (myMax - myMin + 1) + myMin));
-    }
-    return lotto;
+  if(!Array.isArray(numbers)) {
+    return res
+      .status(400)
+      .send('numbers must be an array');
   }
 
-  const lotto = randomRange(1, 20, 6)
+  const guesses = numbers
+    .map(n => parseInt(n))
+    .filter(n => !Number.isNaN(n) && (n >- 1 && n <=20));
 
+  if(guesses.length != 6) {
+    return res  
+      .status(400)
+      .send('numbers must contain 6 integers between 1 and 20');
+  }
+  // ^^^ diff from my if(!numbers.every(checkNum)) approach
+  // no sure which approach I prefer
 
-  // 03 COMPARE USER NUMBERS WITH LOTTO NUMBERS 
-  // FOR NUMBER OF (NON-SEQUENTIAL) MATCHES
+  // fully validated numbers
 
-  const matches = lotto.filter(value => {
-    return numbersAsNums.includes(value);
-  })
-
-  const response = (matches) => {
-    if (matches.length === 0) {
-      return `Sorry, you lose. No matched numbers.`;
-    }
-    if (matches.length < 4) {
-      return `Sorry, you lose. You only matched ${matches.length} numbers.`;
-    } else if (matches.length === 4) {
-      return "Congratulations, you matched 4 numbers and win a free ticket!"
-    } else if (matches.length === 5) {
-      return "Congratulations, you matched 5 numbers and win $100!"
-    } else {
-      return "Oh. My. Gawd. Unbelieveable! You matched all 6 numbers and win mega millions!"
-    }
+  // here are the 20 numbers to choose from
+  const stockNumbers = Array(20).fill(1).map((_, i) => i + 1);
+  // ^^ NOTE use of unusual .fill() method: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
+  
+  // randomly choose 6
+  const winningNumbers = [];
+  for (let i = 0; i < 6; i++) {
+    const ran = Math.floor(Math.random() * stockNumbers.length);
+    winningNumbers.push(stockNumbers[ran]);
+    stockNumbers.splice(ran, 1);
   }
 
-  res.send(`
-    ${response(matches)} 
-    \n Lotto: ${lotto}
-    \n You: ${numbers}
-  `);
-  // res.send([response(matches), matches, lotto, numbersAsNums, numbers])
-})
+  // compare the guesses to the winning number
+  let diff = winningNumbers.filter(n => !guesses.includes(n));
+
+  // construct a response
+  let responseText;
+
+  // with switch instead of if statements! (much more elegant)
+  switch(diff.length){
+    case 0: 
+      responseText = 'Wow! Unbelievable! You could have won the mega millions!';
+      break;
+    case 1:   
+      responseText = 'Congratulations! You win $100!';
+      break;
+    case 2:
+      responseText = 'Congratulations, you win a free ticket!';
+      break;
+    default:
+      responseText = 'Sorry, you lose';  
+  }
+
+  // uncomment below to see how the results ran
+
+  res.json({
+    guesses,
+    stockNumbers,
+    winningNumbers,
+    diff,
+    responseText
+  });
+
+  res.send(responseText);
+
+});
 
 // ^^ ASSIGNMENTS //////////////////////////////////////////////
 
@@ -191,4 +235,4 @@ app.get('/lotto', (req, res) => {
 // setting up (express) server to listen to a specific port
 app.listen(8000, () => {
   console.log('Express server is listening on port 8000...')
-})
+});
