@@ -123,8 +123,13 @@ app.get('/cipher', (req, res) => {
 app.get('/lotto', (req, res) => {
 
   const userNum = req.query.arr;
+  // const userNum = process.argv[2];
 
-  app.res(userNum)
+  if (userNum.length < 6) {
+    return res.status(400).send('You need to submit 6 numbers')
+  }
+
+  res.send(userNum)
 })
 
 // ^^ ASSIGNMENT //////////////////////////////////////////////
