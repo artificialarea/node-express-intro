@@ -1,5 +1,6 @@
-# Created by https://www.toptal.com/developers/gitignore/api/node,react,osx
-# Edit at https://www.toptal.com/developers/gitignore?templates=node,react,osx
+
+# Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,osx,react,node
+# Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,osx,react,node
 
 ### Node ###
 # Logs
@@ -151,4 +152,16 @@ psd
 thumb
 sketch
 
-# End of https://www.toptal.com/developers/gitignore/api/node,react,osx
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+
+# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,osx,react,node
